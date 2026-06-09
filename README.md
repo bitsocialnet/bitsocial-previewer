@@ -89,10 +89,10 @@ then do the Cloudflare DNS change in [`deploy/cloudflare.md`](deploy/cloudflare.
 
 - **New mirror domain for 5chan:** add it to the `5chan` profile's `hostnames`
   in [`lib/clients.js`](lib/clients.js), add a Caddy block + a DNS A record.
-- **New client (e.g. seedit):** fill in the `seedit` profile template
+- **New client (e.g. Seedit):** fill in the `seedit` profile template
   (hostnames, `appBaseUrl`, route formats) and enable it.
 
 ## License
 
 [GPL-3.0-or-later](LICENSE) — matching the Bitsocial core stack it builds on
-(`@pkcprotocol/pkc-js`, `bitsocial-react-hooks`, 5chan, seedit).
+(`@pkcprotocol/pkc-js`, `bitsocial-react-hooks`, 5chan, Seedit).
