@@ -16,7 +16,7 @@ deployment (and a single TLS setup) covers every client and every mirror.
 
 ## How it works
 
-1. 5chan 0.9.1 copies **path-based** share links (no `#/` hash) so the path
+1. 5chan copies **path-based** share links (no `#/` hash) so the path
    reaches the server: `https://s.5chan.app/<board>/thread/<cid>`.
 2. The server matches the path to a client profile + route, fetches the post by
    cid via `@pkcprotocol/pkc-js` (`getComment`), and builds the card.
