@@ -93,8 +93,8 @@ test('5chan thread builds a 4chan-style title + description with the board name'
     kind: 'thread',
   })
   assert.ok(
-    html.includes('og:title" content="/tv/ - Television &amp; Film - Disclosure Day - 5chan"'),
-    'title = board name + subject + site',
+    html.includes('og:title" content="/tv/ - Disclosure Day - Television &amp; Film - 5chan"'),
+    'title = code + subject + board name + site (4chan order)',
   )
   assert.ok(
     html.includes(
@@ -126,6 +126,33 @@ test('catalog page uses the directory name', () => {
     kind: 'catalog',
   })
   assert.ok(html.includes('og:title" content="/tv/ - Television &amp; Film - Catalog - 5chan"'), 'catalog title')
+})
+
+test('thread display title: 50-char content excerpt when there is no subject', () => {
+  const html = buildPreviewHtml({
+    client: { siteName: '5chan', appBaseUrl: 'https://5chan.app', tagline: 't' },
+    appUrl: 'https://5chan.app/#/tv/thread/Q',
+    comment: { content: 'y'.repeat(80), communityAddress: 'tv.bso' },
+    board: 'tv',
+    boardTitle: '/tv/ - Television & Film',
+    kind: 'thread',
+  })
+  const ogTitle = html.match(/og:title" content="([^"]*)"/)[1]
+  assert.equal(ogTitle, '/tv/ - ' + 'y'.repeat(49) + '… - Television &amp; Film - 5chan')
+})
+
+test('thread display title: link fallback when no subject or content', () => {
+  const link = 'https://i.imgur.com/abcdefgh.png'
+  const html = buildPreviewHtml({
+    client: { siteName: '5chan', appBaseUrl: 'https://5chan.app', tagline: 't' },
+    appUrl: 'https://5chan.app/#/tv/thread/Q',
+    comment: { link, communityAddress: 'tv.bso' },
+    board: 'tv',
+    boardTitle: '/tv/ - Television & Film',
+    kind: 'thread',
+  })
+  const ogTitle = html.match(/og:title" content="([^"]*)"/)[1]
+  assert.equal(ogTitle, '/tv/ - ' + link + ' - Television &amp; Film - 5chan')
 })
 
 test('redirect script cannot break out of the <script> tag', () => {

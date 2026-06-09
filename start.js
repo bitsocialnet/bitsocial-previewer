@@ -16,11 +16,10 @@ app.disable('x-powered-by')
 // Paths that browsers/PWAs request but that are never share links.
 const IGNORE = new Set(['/favicon.ico', '/service-worker.js', '/manifest.json', '/apple-touch-icon.png'])
 
-// The comment content is immutable, but the rendered preview (title/tags) can
-// change when the format evolves — so cache modestly, never "immutable", so
-// updates propagate. Repeat renders are cheap anyway (comments are cached).
-const THREAD_CACHE = 'public, max-age=3600'
-const FIVE_MIN = 'public, max-age=300'
+// Always revalidate (cheap 304s via ETag) so preview/format changes show up
+// without cache-busting — the comment is immutable, but the rendered preview is
+// not. Repeat renders are cheap (comments are cached in-memory).
+const PREVIEW_CACHE = 'no-cache'
 
 const send = (res, html, cacheControl) => {
   res.setHeader('Cache-Control', cacheControl)
@@ -41,7 +40,7 @@ app.get('*', async (req, res) => {
 
   // Unknown path -> send to the app home with a generic card (never dead-end).
   if (!matched) {
-    return send(res, buildPreviewHtml({ client, appUrl: client.appBaseUrl }), FIVE_MIN)
+    return send(res, buildPreviewHtml({ client, appUrl: client.appBaseUrl }), PREVIEW_CACHE)
   }
 
   const { route, m } = matched
@@ -56,17 +55,17 @@ app.get('*', async (req, res) => {
       const comment = await getComment(cid)
       let image = commentMediaUrl(comment)
       if (!image && comment.link) image = await scrapeLinkImage(comment.link)
-      return send(res, buildPreviewHtml({ client, appUrl, comment, board, boardTitle, image, kind: 'thread' }), THREAD_CACHE)
+      return send(res, buildPreviewHtml({ client, appUrl, comment, board, boardTitle, image, kind: 'thread' }), PREVIEW_CACHE)
     } catch (e) {
       // Graceful fallback: still redirect to the app with a generic card, but
       // with a short TTL so the rich preview can appear once the cid resolves.
       debug('getComment failed for', cid, '-', e?.message || e)
-      return send(res, buildPreviewHtml({ client, appUrl, board, boardTitle, kind: 'thread' }), FIVE_MIN)
+      return send(res, buildPreviewHtml({ client, appUrl, board, boardTitle, kind: 'thread' }), PREVIEW_CACHE)
     }
   }
 
   // page (board home or catalog) -> generic card
-  return send(res, buildPreviewHtml({ client, appUrl, board, boardTitle, kind: route.pageKind || 'board' }), FIVE_MIN)
+  return send(res, buildPreviewHtml({ client, appUrl, board, boardTitle, kind: route.pageKind || 'board' }), PREVIEW_CACHE)
 })
 
 app
