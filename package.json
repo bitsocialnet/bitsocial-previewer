@@ -1,0 +1,27 @@
+{
+  "name": "bitsocial-previewer",
+  "version": "0.1.0",
+  "description": "Link-preview + redirect server for Bitsocial clients (5chan, seedit, ...). Multi-tenant by hostname.",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "author": "Bitsocial Forge",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitsocialnet/bitsocial-previewer.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node start.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@pkcprotocol/pkc-js": "0.0.41",
+    "debug": "4.4.1",
+    "express": "4.21.2",
+    "ext-name": "5.0.0",
+    "open-graph-scraper": "5.2.3",
+    "quick-lru": "5.1.1"
+  }
+}

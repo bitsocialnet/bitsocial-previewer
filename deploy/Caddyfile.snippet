@@ -1,0 +1,16 @@
+# Add this to the server's Caddyfile. Caddy auto-provisions the Let's Encrypt
+# certificate the moment s.5chan.app resolves to this box (DNS-only A record).
+
+s.5chan.app {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:3924
+}
+
+# Mirror domains: list more hostnames on one block (they share the cert + the
+# same upstream), and add each to the 5chan profile's `hostnames` in
+# lib/clients.js so the server recognises them:
+#
+# s2.5chan.app, s.5chan.eth.limo {
+# 	encode zstd gzip
+# 	reverse_proxy 127.0.0.1:3924
+# }

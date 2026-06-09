@@ -1,0 +1,30 @@
+services:
+  bitsocial-previewer:
+    image: ghcr.io/bitsocialnet/bitsocial-previewer:latest
+    build:
+      context: .
+    container_name: bitsocial-previewer
+    restart: unless-stopped
+
+    # Host networking + BIND_HOST=127.0.0.1 keeps the preview port private to the
+    # host, so only the local Caddy can proxy to it (never the public internet).
+    network_mode: host
+
+    environment:
+      NODE_ENV: production
+      PORT: "3924"
+      BIND_HOST: 127.0.0.1
+      DEBUG: bitsocial-previewer:*
+
+      # Resolve shared comments from the same public IPFS gateways the 5chan app
+      # uses — they have broad content coverage. (The box's local IPFS node is
+      # thinly peered and doesn't pin individual comment blocks, so it can't
+      # resolve arbitrary shared cids.)
+      IPFS_GATEWAY_URLS: https://gateway.forumindex.com,https://ipfsgateway.xyz,https://gateway.plebpubsub.xyz,https://ipfs.io
+      GETCOMMENT_TIMEOUT_MS: "10000"
+
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
