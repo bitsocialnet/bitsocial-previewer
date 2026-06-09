@@ -76,9 +76,56 @@ test('preview HTML escapes user content (no tag/attribute injection)', () => {
     appUrl: 'https://5chan.app/#/biz/thread/QmAbc',
     comment: { title: 'pwn "><img src=x onerror=alert(1)>', content: 'hi' },
     board: 'biz',
+    kind: 'thread',
   })
   assert.ok(!html.includes('<img src=x'), 'raw injected tag must not survive')
   assert.ok(html.includes('&lt;img src=x'), 'injected tag must be escaped')
+})
+
+test('5chan thread builds a 4chan-style title + description with the board name', () => {
+  const html = buildPreviewHtml({
+    client: { siteName: '5chan', appBaseUrl: 'https://5chan.app', tagline: 'a serverless, adminless imageboard' },
+    appUrl: 'https://5chan.app/#/tv/thread/QmX',
+    comment: { title: 'Disclosure Day', content: 'all this UFO craze is fake', communityAddress: 'television-and-film.bso' },
+    board: 'tv',
+    boardTitle: '/tv/ - Television & Film',
+    image: 'https://i.imgur.com/x.png',
+    kind: 'thread',
+  })
+  assert.ok(
+    html.includes('og:title" content="/tv/ - Television &amp; Film - Disclosure Day - 5chan"'),
+    'title = board name + subject + site',
+  )
+  assert.ok(
+    html.includes(
+      'og:description" content="all this UFO craze is fake — &quot;/tv/ - Television &amp; Film&quot; on 5chan, a serverless, adminless imageboard."',
+    ),
+    'description = post text + board tagline',
+  )
+  assert.ok(html.includes('twitter:card" content="summary_large_image"'), 'image -> large card')
+})
+
+test('thread on an arbitrary board falls back to the community address', () => {
+  const html = buildPreviewHtml({
+    client: { siteName: '5chan', appBaseUrl: 'https://5chan.app', tagline: 'a serverless, adminless imageboard' },
+    appUrl: 'https://5chan.app/#/cool.bso/thread/QmX',
+    comment: { title: 'hello', content: 'hi', communityAddress: 'cool.bso' },
+    board: 'cool.bso',
+    boardTitle: null,
+    kind: 'thread',
+  })
+  assert.ok(html.includes('og:title" content="cool.bso - hello - 5chan"'), 'uses community address as board label')
+})
+
+test('catalog page uses the directory name', () => {
+  const html = buildPreviewHtml({
+    client: { siteName: '5chan', appBaseUrl: 'https://5chan.app', tagline: 'a serverless, adminless imageboard' },
+    appUrl: 'https://5chan.app/#/tv/catalog',
+    board: 'tv',
+    boardTitle: '/tv/ - Television & Film',
+    kind: 'catalog',
+  })
+  assert.ok(html.includes('og:title" content="/tv/ - Television &amp; Film - Catalog - 5chan"'), 'catalog title')
 })
 
 test('redirect script cannot break out of the <script> tag', () => {

@@ -5,6 +5,7 @@ import { getClient, matchRoute } from './lib/clients.js'
 import { getComment } from './lib/pkc.js'
 import { commentMediaUrl, scrapeLinkImage } from './lib/media.js'
 import { buildPreviewHtml } from './lib/html.js'
+import { getBoardTitle } from './lib/directories.js'
 
 const debug = Debug('bitsocial-previewer:server')
 Debug.enable(process.env.DEBUG || 'bitsocial-previewer:*')
@@ -43,6 +44,8 @@ app.get('*', async (req, res) => {
   const { route, m } = matched
   const board = m[1]
   const appUrl = client.appBaseUrl + route.app(m)
+  // Nice board name for clients that have a directory (5chan); null otherwise.
+  const boardTitle = client.directoryTitles ? getBoardTitle(board) : null
 
   if (route.kind === 'thread') {
     const cid = route.cid(m)
@@ -50,17 +53,17 @@ app.get('*', async (req, res) => {
       const comment = await getComment(cid)
       let image = commentMediaUrl(comment)
       if (!image && comment.link) image = await scrapeLinkImage(comment.link)
-      return send(res, buildPreviewHtml({ client, appUrl, comment, board, image }), ONE_YEAR)
+      return send(res, buildPreviewHtml({ client, appUrl, comment, board, boardTitle, image, kind: 'thread' }), ONE_YEAR)
     } catch (e) {
       // Graceful fallback: still redirect to the app with a generic card, but
       // with a short TTL so the rich preview can appear once the cid resolves.
       debug('getComment failed for', cid, '-', e?.message || e)
-      return send(res, buildPreviewHtml({ client, appUrl, board }), FIVE_MIN)
+      return send(res, buildPreviewHtml({ client, appUrl, board, boardTitle, kind: 'thread' }), FIVE_MIN)
     }
   }
 
-  // page (board/catalog/home) -> generic card
-  return send(res, buildPreviewHtml({ client, appUrl, board, pageTitle: route.title?.(m) }), FIVE_MIN)
+  // page (board home or catalog) -> generic card
+  return send(res, buildPreviewHtml({ client, appUrl, board, boardTitle, kind: route.pageKind || 'board' }), FIVE_MIN)
 })
 
 app
