@@ -16,7 +16,10 @@ app.disable('x-powered-by')
 // Paths that browsers/PWAs request but that are never share links.
 const IGNORE = new Set(['/favicon.ico', '/service-worker.js', '/manifest.json', '/apple-touch-icon.png'])
 
-const ONE_YEAR = 'public, max-age=31536000, immutable'
+// The comment content is immutable, but the rendered preview (title/tags) can
+// change when the format evolves — so cache modestly, never "immutable", so
+// updates propagate. Repeat renders are cheap anyway (comments are cached).
+const THREAD_CACHE = 'public, max-age=3600'
 const FIVE_MIN = 'public, max-age=300'
 
 const send = (res, html, cacheControl) => {
@@ -53,7 +56,7 @@ app.get('*', async (req, res) => {
       const comment = await getComment(cid)
       let image = commentMediaUrl(comment)
       if (!image && comment.link) image = await scrapeLinkImage(comment.link)
-      return send(res, buildPreviewHtml({ client, appUrl, comment, board, boardTitle, image, kind: 'thread' }), ONE_YEAR)
+      return send(res, buildPreviewHtml({ client, appUrl, comment, board, boardTitle, image, kind: 'thread' }), THREAD_CACHE)
     } catch (e) {
       // Graceful fallback: still redirect to the app with a generic card, but
       // with a short TTL so the rich preview can appear once the cid resolves.
