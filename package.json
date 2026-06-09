@@ -1,6 +1,6 @@
 {
   "name": "bitsocial-previewer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Link-preview + redirect server for Bitsocial clients (5chan, seedit, ...). Multi-tenant by hostname.",
   "type": "module",
