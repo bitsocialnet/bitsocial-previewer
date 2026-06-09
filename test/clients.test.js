@@ -155,6 +155,31 @@ test('thread display title: link fallback when no subject or content', () => {
   assert.equal(ogTitle, '/tv/ - ' + link + ' - Television &amp; Film - 5chan')
 })
 
+test('description strips bare URLs (no platform image hijack) and keeps the post image', () => {
+  const html = buildPreviewHtml({
+    client: { siteName: '5chan', appBaseUrl: 'https://5chan.app', tagline: 'a serverless, adminless imageboard' },
+    appUrl: 'https://5chan.app/#/m/thread/Q',
+    comment: {
+      title: 'Best Gundam opening',
+      content: 'https://www.youtube.com/watch?v=bM9IvVH3pKE',
+      link: 'https://i.imgur.com/352orvK.jpeg',
+      communityAddress: 'mecha.bso',
+    },
+    board: 'm',
+    boardTitle: '/m/ - Mecha',
+    image: 'https://i.imgur.com/352orvK.jpeg',
+    kind: 'thread',
+  })
+  assert.ok(!/youtube|youtu\.be/i.test(html), 'no YouTube URL anywhere in the page')
+  assert.ok(
+    html.includes(
+      'og:description" content="Best Gundam opening — &quot;/m/ - Mecha&quot; on 5chan, a serverless, adminless imageboard."',
+    ),
+    'description falls back to the title with URLs stripped',
+  )
+  assert.ok(html.includes('og:image" content="https://i.imgur.com/352orvK.jpeg"'), 'keeps the imgur post image')
+})
+
 test('redirect script cannot break out of the <script> tag', () => {
   const html = buildPreviewHtml({
     client: { siteName: '5chan', appBaseUrl: 'https://5chan.app' },
