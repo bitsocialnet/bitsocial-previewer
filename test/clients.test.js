@@ -57,17 +57,48 @@ test('bare board path -> generic page', () => {
   assert.equal(r.appUrl, 'https://5chan.app/#/all')
 })
 
-test('s.seedit.app resolves to the seedit profile and maps /s/ links', () => {
+test('s.seedit.app resolves to the seedit profile', () => {
   assert.equal(getClient('s.seedit.app').id, 'seedit')
   assert.ok(allHostnames().includes('s.seedit.app'))
+})
 
-  const slashS = resolve('s.seedit.app', '/s/community.eth/c/QmSeeditCid')
-  assert.equal(slashS.kind, 'thread')
-  assert.equal(slashS.cid, 'QmSeeditCid')
-  assert.equal(slashS.appUrl, 'https://seedit.app/#/s/community.eth/c/QmSeeditCid')
+test('reported Seedit share link preserves the community and post in the hash redirect', () => {
+  const cid = 'QmNuckJF2xLFqEynCwEBebnVtgGV9RdbTmaMQatKWtZR5x'
+  const path = `/s/askseedit.bso/comments/${cid}`
+  for (const suffix of ['', '/']) {
+    const r = resolve('s.seedit.app', path + suffix)
+    assert.equal(r.kind, 'thread')
+    assert.equal(r.cid, cid)
+    assert.equal(r.board, 'askseedit.bso')
+    assert.equal(r.appUrl, `https://seedit.app/#${path}`)
+  }
+})
 
-  const clean = resolve('s.seedit.app', '/community.eth/c/QmSeeditCid')
-  assert.equal(clean.appUrl, 'https://seedit.app/#/s/community.eth/c/QmSeeditCid')
+test('Seedit clean and legacy post links redirect to the comments route', () => {
+  for (const path of ['/community.eth/comments/QmSeeditCid', '/community.eth/c/QmSeeditCid', '/s/community.eth/c/QmSeeditCid']) {
+    const r = resolve('s.seedit.app', path)
+    assert.equal(r.kind, 'thread')
+    assert.equal(r.cid, 'QmSeeditCid')
+    assert.equal(r.appUrl, 'https://seedit.app/#/s/community.eth/comments/QmSeeditCid')
+  }
+})
+
+test('Seedit community pages retain their hash redirect', () => {
+  for (const path of ['/s/community.eth', '/community.eth']) {
+    const r = resolve('s.seedit.app', path)
+    assert.equal(r.kind, 'page')
+    assert.equal(r.appUrl, 'https://seedit.app/#/s/community.eth')
+  }
+})
+
+test('Seedit preview fallback preserves the post redirect when no comment is available', () => {
+  const r = resolve('s.seedit.app', '/s/community.eth/comments/QmSeeditCid')
+  const html = buildPreviewHtml({ ...r })
+  const appUrl = 'https://seedit.app/#/s/community.eth/comments/QmSeeditCid'
+  assert.ok(html.includes(`og:url" content="${appUrl}"`))
+  assert.ok(html.includes(`rel="canonical" href="${appUrl}"`))
+  assert.ok(html.includes(`content="0; url=${appUrl}"`))
+  assert.ok(html.includes(`location.replace("${appUrl}")`))
 })
 
 test('preview HTML escapes user content (no tag/attribute injection)', () => {
