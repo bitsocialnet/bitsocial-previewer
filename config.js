@@ -48,5 +48,7 @@ export default {
   bindHost: process.env.BIND_HOST || '127.0.0.1',
   // Max time to resolve a comment before the request falls back to a generic card.
   getCommentTimeoutMs: Number(process.env.GETCOMMENT_TIMEOUT_MS || 10_000),
+  // Max time to scrape a link post's og:image before rendering the card without it.
+  linkScrapeTimeoutMs: Number(process.env.LINK_SCRAPE_TIMEOUT_MS || 4_000),
   pkcOptions: buildPkcOptions(),
 }
