@@ -15,7 +15,7 @@
   },
   "scripts": {
     "start": "node start.js",
-    "test": "node --test"
+    "test": "node --test --experimental-test-module-mocks"
   },
   "dependencies": {
     "@pkcprotocol/pkc-js": "0.0.124",
