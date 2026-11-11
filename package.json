@@ -11,11 +11,11 @@
     "url": "git+https://github.com/bitsocialnet/bitsocial-previewer.git"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.19"
   },
   "scripts": {
     "start": "node start.js",
-    "test": "node --test"
+    "test": "node --test --experimental-test-module-mocks"
   },
   "dependencies": {
     "@pkcprotocol/pkc-js": "0.0.124",
