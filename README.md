@@ -65,12 +65,12 @@ npm test             # routing + HTML unit tests (no network/install needed for 
 ## Deploy (Caddy)
 
 Deployed under `/opt/bitsocial-previewer` like the box's other services. Config
-(gateways, port) is inline in [`docker-compose.yml`](docker-compose.yml). The
-previewer resolves shared comments through the public IPFS gateways the 5chan app
-uses — a fetch is sub-second once a gateway has the content, and a hard timeout
-falls back to a generic card so a request never hangs. (A box's local IPFS node
-generally can't resolve arbitrary shared comment cids: thinly peered, and it
-doesn't pin individual comment blocks.)
+(RPC URL, port) is inline in [`docker-compose.yml`](docker-compose.yml). The
+previewer resolves shared comments through the box's pkc daemon over loopback RPC
+(`PKC_RPC_URLS=ws://127.0.0.1:9138`); a fetch takes tens of milliseconds, and a
+hard timeout falls back to a generic card so a request never hangs. Public IPFS
+gateways (`IPFS_GATEWAY_URLS`) answer 404/429 or time out for current comment
+cids, and pkc-js ignores them while `PKC_RPC_URLS` is set.
 
 ```bash
 # on the box, in /opt/bitsocial-previewer (source synced or git-cloned):
